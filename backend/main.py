@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import shutil
 from pathlib import Path
 from typing import List
@@ -12,7 +12,10 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-import core_engine
+try:
+    from backend import core_engine
+except ImportError:
+    import core_engine
 
 app = FastAPI(
     title="SangamRAG Healthcare AI API",
