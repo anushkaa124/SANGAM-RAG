@@ -1,0 +1,22 @@
+﻿# Dependencies
+node_modules/
+backend/venv/
+venv/
+__pycache__/
+*.pyc
+
+# Environment & Secrets
+.env
+backend/.env
+
+# Generated DB & Cache
+faiss.index
+chunks.pkl
+query_cache.json
+backend/faiss.index
+backend/chunks.pkl
+backend/query_cache.json
+
+# Build outputs
+frontend/dist/
+frontend/build/
