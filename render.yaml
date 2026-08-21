@@ -1,0 +1,27 @@
+﻿services:
+  # FastAPI Backend Web Service
+  - type: web
+    name: sangamrag-backend
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port 
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: PYTHONIOENCODING
+        value: utf-8
+
+  # React Frontend Static Site
+  - type: web
+    name: sangamrag-frontend
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_BASE
+        fromService:
+          type: web
+          name: sangamrag-backend
+          property: url
