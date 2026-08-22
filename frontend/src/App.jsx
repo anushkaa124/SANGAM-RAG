@@ -39,10 +39,40 @@ import {
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
+// Translation function using Google Translate API
+const translateHindiToEnglish = async (text) => {
+  try {
+    const response = await fetch(
+      `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=hi|en`
+    );
+    const data = await response.json();
+    return data.responseData.translatedText || text;
+  } catch (err) {
+    console.error("Translation failed:", err);
+    return text;
+  }
+};
+
+// Translation function for English to Hindi
+const translateEnglishToHindi = async (text) => {
+  try {
+    const response = await fetch(
+      `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|hi`
+    );
+    const data = await response.json();
+    return data.responseData.translatedText || text;
+  } catch (err) {
+    console.error("Translation failed:", err);
+    return text;
+  }
+};
+
 export default function App() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState(null);
+  const [translatedResponse, setTranslatedResponse] = useState(null);
+  const [isTranslating, setIsTranslating] = useState(false);
   const [error, setError] = useState("");
   const [serverHealth, setServerHealth] = useState({ online: false, docsCount: 0, chunksCount: 0 });
   const [documents, setDocuments] = useState([]);
@@ -57,6 +87,7 @@ export default function App() {
   const [showAbout, setShowAbout] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
+  const [language, setLanguage] = useState("en-US"); // en-US or hi-IN
   const recognitionRef = useRef(null);
 
   const quickScenarios = [
@@ -93,14 +124,26 @@ export default function App() {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = "en-US";
+      recognition.lang = language;
 
-      recognition.onresult = (event) => {
+      recognition.onresult = async (event) => {
         let transcript = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
           transcript += event.results[i][0].transcript;
         }
-        setQuestion(transcript);
+        
+        // Translate Hindi to English if needed
+        if (language === "hi-IN") {
+          try {
+            const translated = await translateHindiToEnglish(transcript);
+            setQuestion(translated);
+          } catch (err) {
+            console.error("Translation error:", err);
+            setQuestion(transcript);
+          }
+        } else {
+          setQuestion(transcript);
+        }
       };
 
       recognition.onerror = (event) => {
@@ -116,7 +159,7 @@ export default function App() {
     } else {
       setSpeechSupported(false);
     }
-  }, []);
+  }, [language]);
 
   const toggleListening = () => {
     if (!recognitionRef.current) {
@@ -151,6 +194,29 @@ export default function App() {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(response.answer);
       utterance.rate = 0.95;
+      utterance.lang = "en-US";
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+      setIsSpeaking(true);
+    }
+  };
+
+  // Text-to-Speech for Hindi translation
+  const toggleHindiSpeech = () => {
+    if (!("speechSynthesis" in window)) {
+      alert("Text-to-Speech is not supported in your browser.");
+      return;
+    }
+
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    } else if (translatedResponse) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(translatedResponse);
+      utterance.rate = 0.95;
+      utterance.lang = "hi-IN";
       utterance.onend = () => setIsSpeaking(false);
       utterance.onerror = () => setIsSpeaking(false);
       window.speechSynthesis.speak(utterance);
@@ -238,6 +304,20 @@ export default function App() {
       navigator.clipboard.writeText(response.answer);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleTranslateResponse = async () => {
+    if (!response || !response.answer) return;
+    setIsTranslating(true);
+    try {
+      const translated = await translateEnglishToHindi(response.answer);
+      setTranslatedResponse(translated);
+    } catch (err) {
+      console.error("Translation error:", err);
+      setError("Failed to translate response to Hindi");
+    } finally {
+      setIsTranslating(false);
     }
   };
 
@@ -404,6 +484,17 @@ export default function App() {
 
               {/* Action Buttons */}
               <div className="absolute right-2 flex items-center space-x-2">
+                {speechSupported && (
+                  <select 
+                    value={language} 
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="px-2 py-1.5 bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs rounded-lg hover:bg-zinc-700 transition"
+                    title="Select input language"
+                  >
+                    <option value="en-US">English</option>
+                    <option value="hi-IN">हिंदी (Hindi)</option>
+                  </select>
+                )}
                 {speechSupported && (
                   <button
                     type="button"
@@ -615,9 +706,40 @@ export default function App() {
 
                 {/* Answer Content */}
                 <div className="space-y-1.5">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Response</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">Response</span>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={handleTranslateResponse}
+                        disabled={isTranslating}
+                        className="px-3 py-1 text-xs bg-blue-900 hover:bg-blue-800 text-blue-200 rounded transition disabled:opacity-50"
+                        title="Translate to Hindi"
+                      >
+                        {isTranslating ? "Translating..." : "Translate to हिंदी"}
+                      </button>
+                      {translatedResponse && (
+                        <button
+                          onClick={toggleHindiSpeech}
+                          className="px-3 py-1 text-xs bg-purple-900 hover:bg-purple-800 text-purple-200 rounded transition flex items-center space-x-1"
+                          title="Speak Hindi Translation"
+                        >
+                          {isSpeaking ? (
+                            <>
+                              <VolumeX className="w-3 h-3" />
+                              <span>Stop</span>
+                            </>
+                          ) : (
+                            <>
+                              <Volume2 className="w-3 h-3" />
+                              <span>सुनें</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
                   <div className="text-xs text-zinc-200 leading-relaxed bg-[#111317] p-4 rounded-lg border border-zinc-800/80 whitespace-pre-wrap font-sans">
-                    {response.answer}
+                    {translatedResponse || response.answer}
                   </div>
                 </div>
 
