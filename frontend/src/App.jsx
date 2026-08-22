@@ -27,7 +27,14 @@ import {
   VolumeX,
   Download,
   BarChart3,
-  Sparkles
+  Sparkles,
+  Info,
+  X,
+  Layers,
+  Server,
+  Cpu,
+  Brain,
+  Github
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
@@ -47,6 +54,7 @@ export default function App() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   
   // Speech Recognition state
+  const [showAbout, setShowAbout] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
   const recognitionRef = useRef(null);
@@ -331,6 +339,15 @@ export default function App() {
               className="p-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-md border border-zinc-800 transition-colors duration-150"
             >
               <Trash2 className="w-4 h-4" />
+            </button>
+
+            <button
+              onClick={() => setShowAbout(true)}
+              title="About SangamRAG"
+              className="flex items-center space-x-1.5 px-3 py-2 bg-zinc-900 hover:bg-emerald-600/10 text-zinc-400 hover:text-emerald-400 rounded-md border border-zinc-800 hover:border-emerald-500/40 transition-all duration-150 text-xs font-medium"
+            >
+              <Info className="w-4 h-4" />
+              <span>About</span>
             </button>
           </div>
 
@@ -732,6 +749,159 @@ export default function App() {
         </div>
 
       </main>
+
+      {/* ─── About Modal ─── */}
+      {showAbout && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/80 backdrop-blur-sm px-4"
+          onClick={() => setShowAbout(false)}
+        >
+          <div
+            className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[#14171d] border border-zinc-800 rounded-2xl shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="sticky top-0 flex items-center justify-between px-6 py-4 bg-[#14171d] border-b border-zinc-800 z-10">
+              <div className="flex items-center space-x-3">
+                <div className="w-9 h-9 rounded-lg bg-emerald-600/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                  <Stethoscope className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-zinc-100">SangamRAG</h2>
+                  <p className="text-xs text-zinc-400">v2.0 · Clinical AI Ground-Truth Engine</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAbout(false)}
+                className="p-2 text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="px-6 py-6 space-y-6">
+
+              {/* What is SangamRAG */}
+              <div>
+                <p className="text-sm text-zinc-300 leading-relaxed">
+                  <span className="text-emerald-400 font-semibold">SangamRAG</span> is a Retrieval-Augmented Generation (RAG) system built for healthcare field workers — ASHA workers, ANMs, and NHM staff. It answers clinical questions strictly from verified government health documents, automatically blocks answers when sources conflict, and provides vector-level transparency on every response.
+                </p>
+              </div>
+
+              {/* Key Capabilities */}
+              <div>
+                <div className="flex items-center space-x-2 mb-3">
+                  <Sparkles className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-sm font-semibold text-zinc-100">Key Capabilities</h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[
+                    { icon: <ShieldAlert className="w-4 h-4" />, label: "Conflict Interception", desc: "Blocks contradictory dosage / volume claims between documents" },
+                    { icon: <Database className="w-4 h-4" />, label: "FAISS Vector Search", desc: "Semantic nearest-neighbour retrieval over policy chunks" },
+                    { icon: <Mic className="w-4 h-4" />, label: "Voice-to-Text Input", desc: "Web Speech API mic for hands-free field queries" },
+                    { icon: <Volume2 className="w-4 h-4" />, label: "Text-to-Speech Readout", desc: "Audio playback of verified answers" },
+                    { icon: <BarChart3 className="w-4 h-4" />, label: "Vector Telemetry", desc: "Live semantic match confidence & L2 distance meter" },
+                    { icon: <Download className="w-4 h-4" />, label: "Audit Export", desc: "One-click JSON report download for compliance" },
+                  ].map(({ icon, label, desc }) => (
+                    <div key={label} className="flex items-start space-x-2.5 bg-zinc-900 border border-zinc-800 rounded-xl p-3">
+                      <span className="text-emerald-400 mt-0.5 shrink-0">{icon}</span>
+                      <div>
+                        <p className="text-xs font-semibold text-zinc-100">{label}</p>
+                        <p className="text-xs text-zinc-500 mt-0.5">{desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tech Stack */}
+              <div>
+                <div className="flex items-center space-x-2 mb-3">
+                  <Layers className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-sm font-semibold text-zinc-100">Full Tech Stack</h3>
+                </div>
+                <div className="space-y-3">
+                  {/* Frontend */}
+                  <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <Globe className="w-4 h-4 text-sky-400" />
+                      <span className="text-xs font-semibold text-sky-400 uppercase tracking-wider">Frontend</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {["React 18", "Vite 5", "Tailwind CSS", "Lucide Icons", "Web Speech API", "SpeechSynthesis API"].map(t => (
+                        <span key={t} className="text-xs bg-sky-500/10 border border-sky-500/20 text-sky-300 px-2.5 py-1 rounded-md">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Backend */}
+                  <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <Server className="w-4 h-4 text-violet-400" />
+                      <span className="text-xs font-semibold text-violet-400 uppercase tracking-wider">Backend</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {["FastAPI", "Python 3.11", "Uvicorn", "CORS Middleware", "SHA256 TTL Cache", "REST API"].map(t => (
+                        <span key={t} className="text-xs bg-violet-500/10 border border-violet-500/20 text-violet-300 px-2.5 py-1 rounded-md">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                  {/* AI / ML */}
+                  <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <Brain className="w-4 h-4 text-emerald-400" />
+                      <span className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">AI / ML Engine</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {["Groq LLM (compound-mini)", "SentenceTransformer (all-MiniLM-L6-v2)", "FAISS Vector Index", "LangChain RecursiveCharacterTextSplitter", "Ollama Offline Fallback", "384-dim Embeddings"].map(t => (
+                        <span key={t} className="text-xs bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-md">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Infrastructure */}
+                  <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <Cpu className="w-4 h-4 text-amber-400" />
+                      <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">Infrastructure & DevOps</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {["Render.com (Cloud Deploy)", "GitHub (CI/CD)", "Python-dotenv (.env secrets)", "FAISS Index Persistence", "pickle + JSON cache store"].map(t => (
+                        <span key={t} className="text-xs bg-amber-500/10 border border-amber-500/20 text-amber-300 px-2.5 py-1 rounded-md">{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Safety Architecture */}
+              <div>
+                <div className="flex items-center space-x-2 mb-3">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-sm font-semibold text-zinc-100">Safety Architecture</h3>
+                </div>
+                <div className="bg-rose-500/5 border border-rose-500/20 rounded-xl p-4 space-y-2">
+                  <p className="text-xs text-zinc-300">The <span className="text-rose-400 font-semibold">Quantitative Conflict Detector</span> scans all retrieved document chunks for numeric claims (dosages in mg, volumes in ml, time in hours) and compares them across sources. If conflicting values are found, the AI is <span className="text-rose-400 font-semibold">blocked from answering</span> and both claims are shown side-by-side so the user can consult the original documents.</p>
+                  <p className="text-xs text-zinc-500">This is designed to prevent dangerous AI hallucinations in healthcare field settings where wrong dosage information could cause patient harm.</p>
+                </div>
+              </div>
+
+              {/* GitHub Link */}
+              <div className="flex items-center justify-between border-t border-zinc-800 pt-4">
+                <p className="text-xs text-zinc-500">Built for healthcare hackathon · 2026</p>
+                <a
+                  href="https://github.com/sandhruv/sanagam-rag"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 text-xs text-zinc-400 hover:text-emerald-400 transition-colors"
+                >
+                  <Github className="w-4 h-4" />
+                  <span>sandhruv/sanagam-rag</span>
+                </a>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
